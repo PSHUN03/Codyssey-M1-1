@@ -18,8 +18,9 @@
 - [6. 결론 및 한계점](REPORT.md#6-결론-및-한계점)
   - [결론](REPORT.md#결론)
   - [한계점](REPORT.md#한계점)
-- [7. AI 사용 로그](REPORT.md#7-ai-사용-로그)
-- [8. 재현 방법](REPORT.md#8-재현-방법)
+- [7. [보너스] 시계열 심화 — 추세/계절성 분해](REPORT.md#7-보너스-시계열-심화--추세계절성-분해)
+- [8. AI 사용 로그](REPORT.md#8-ai-사용-로그)
+- [9. 재현 방법](REPORT.md#9-재현-방법)
 
 ### 📊 시각화 바로가기
 | 시각화 | 이미지 | 리포트 설명 |
@@ -27,6 +28,7 @@
 | 서울 vs 지방광역시 가격 추이 | [열기](images/01_price_trend.png) | [설명](REPORT.md#시각화-1--서울-vs-지방광역시-면적당-가격-추이) |
 | 서울/지방 가격배율(격차) 추이 | [열기](images/02_gap_ratio.png) | [설명](REPORT.md#시각화-2--서울지방광역시-가격배율격차-지표-추이) |
 | 국면별 누적 변화율 비교 | [열기](images/03_period_comparison.png) | [설명](REPORT.md#시각화-3--국면별-누적-가격-변화율-비교) |
+| [보너스] 추세/계절성 분해 | [열기](images/04_seasonal_decomposition.png) | [설명](REPORT.md#7-보너스-시계열-심화--추세계절성-분해) |
 
 ### 💡 인사이트 바로가기
 - [인사이트 1 — 20년간 격차는 전반적으로 확대됐다](REPORT.md#인사이트-1--20년간-격차는-전반적으로-확대됐다)
@@ -39,6 +41,7 @@
 | [`scripts/collect_data.py`](scripts/collect_data.py) | 국토부 Open API로 76개 지역 × 240개월 원본 데이터 수집 (캐싱/재개 로직 포함) |
 | [`scripts/preprocess.py`](scripts/preprocess.py) | 면적당 단가 계산, IQR 이상치 제거, 8개 시리즈 월별 집계 |
 | [`scripts/analyze.py`](scripts/analyze.py) | 이동평균·국면별 변화율 계산 및 시각화 3종 생성 |
+| [`scripts/decompose.py`](scripts/decompose.py) | [보너스] 추세/계절성/잔차 분해 및 시각화 생성 |
 
 ### 🗂 데이터 바로가기
 | 파일 | 내용 |
@@ -51,6 +54,8 @@
 | [`period_comparison.csv`](data/processed/period_comparison.csv) | 국면별 누적 변화율 비교 |
 | [`key_stats.txt`](data/processed/key_stats.txt) | 리포트에 인용된 핵심 수치 요약 |
 | [`gu_monthly_median.csv`](data/processed/gu_monthly_median.csv) | 76개 구 단위 월별 중앙값 (참고용 상세 데이터) |
+| [`seasonal_coefficients.csv`](data/processed/seasonal_coefficients.csv) | [보너스] 월별 계절 계수 (서울/지방광역시 통합) |
+| [`decomposition_서울.csv`](<data/processed/decomposition_서울.csv>) / [`decomposition_지방광역시_통합.csv`](<data/processed/decomposition_지방광역시_통합.csv>) | [보너스] 추세·계절성·잔차 분해 원본 값 |
 
 ---
 
@@ -75,6 +80,7 @@ MOLIT_API_KEY=발급받은키
 python scripts/collect_data.py   # 1) 원본 데이터 수집 — 76개 지역 x 240개월. 일일 API 트래픽 한도(약 10,000건)로 인해 여러 날에 나눠 실행될 수 있으며, 재실행 시 이미 받은 조합은 자동으로 건너뜁니다.
 python scripts/preprocess.py     # 2) 정제 + IQR 이상치 제거 + 8개 시리즈 월별 집계
 python scripts/analyze.py        # 3) 이동평균/변화율 계산 + 시각화 3종 생성 (images/ 폴더에 저장)
+python scripts/decompose.py      # 4) [보너스] 추세/계절성/잔차 분해 + 시각화 1종 생성
 ```
 
 ---
@@ -90,11 +96,13 @@ M1-1/
 ├── scripts/
 │   ├── collect_data.py         # 국토부 API 데이터 수집
 │   ├── preprocess.py           # 정제 + 이상치 제거 + 월별 집계
-│   └── analyze.py              # 시계열 분석 + 시각화
+│   ├── analyze.py              # 시계열 분석 + 시각화
+│   └── decompose.py            # [보너스] 추세/계절성 분해
 ├── images/
 │   ├── 01_price_trend.png
 │   ├── 02_gap_ratio.png
-│   └── 03_period_comparison.png
+│   ├── 03_period_comparison.png
+│   └── 04_seasonal_decomposition.png   # [보너스]
 └── data/
     ├── raw/                    # 수집 로그 (원본 대용량 CSV는 재현 가능하므로 .gitignore 처리)
     └── processed/              # 분석에 사용된 집계 데이터 전체
