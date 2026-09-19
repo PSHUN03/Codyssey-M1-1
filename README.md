@@ -19,6 +19,7 @@
   - [결론](REPORT.md#결론)
   - [한계점](REPORT.md#한계점)
 - [7. [보너스] 시계열 심화 — 추세/계절성 분해](REPORT.md#7-보너스-시계열-심화--추세계절성-분해)
+  - [분해 방식 선택 근거 (가법/승법, 고전적/STL/X-11/SEATS)](REPORT.md#분해-방식-선택-근거)
 - [8. AI 사용 로그](REPORT.md#8-ai-사용-로그)
 - [9. 재현 방법](REPORT.md#9-재현-방법)
 
@@ -42,6 +43,7 @@
 | [`scripts/preprocess.py`](scripts/preprocess.py) | 면적당 단가 계산, IQR 이상치 제거, 8개 시리즈 월별 집계 |
 | [`scripts/analyze.py`](scripts/analyze.py) | 이동평균·국면별 변화율 계산 및 시각화 3종 생성 |
 | [`scripts/decompose.py`](scripts/decompose.py) | [보너스] 추세/계절성/잔차 분해 및 시각화 생성 |
+| [`scripts/decompose_compare.py`](scripts/decompose_compare.py) | [보너스] 분해 방식(가법/승법, 고전적/STL) 비교 수치 계산 |
 
 ### 🗂 데이터 바로가기
 | 파일 | 내용 |
@@ -55,6 +57,7 @@
 | [`period_comparison.csv`](data/processed/period_comparison.csv) | 국면별 누적 변화율 비교 |
 | [`key_stats.txt`](data/processed/key_stats.txt) | 리포트에 인용된 핵심 수치 요약 |
 | [`gu_monthly_median.csv`](data/processed/gu_monthly_median.csv) | 76개 구 단위 월별 중앙값 (참고용 상세 데이터) |
+| [`decomposition_method_comparison.txt`](data/processed/decomposition_method_comparison.txt) / [`seasonal_method_comparison.csv`](data/processed/seasonal_method_comparison.csv) | [보너스] 분해 방식 비교 결과 |
 | [`seasonal_coefficients.csv`](data/processed/seasonal_coefficients.csv) | [보너스] 월별 계절 계수 (서울/지방광역시 통합) |
 | [`decomposition_서울.csv`](<data/processed/decomposition_서울.csv>) / [`decomposition_지방광역시_통합.csv`](<data/processed/decomposition_지방광역시_통합.csv>) | [보너스] 추세·계절성·잔차 분해 원본 값 |
 
