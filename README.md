@@ -46,6 +46,7 @@
 ### 🗂 데이터 바로가기
 | 파일 | 내용 |
 |---|---|
+| [**`data/regional/`**](data/regional/INDEX.md) | **API로 받은 원본 거래 데이터 460만 건을 지역(75개 구·군) → 월별 CSV로 분할** (예: [서울 강남구 2025-01](data/regional/서울/강남구/2025-01.csv)). 지역별 요약은 [INDEX.md](data/regional/INDEX.md) |
 | [`final_8series_monthly.csv`](data/processed/final_8series_monthly.csv) | 서울/지방광역시_통합/6개 도시 — 8개 시리즈 월별 중앙값 (핵심 산출물) |
 | [`wide_monthly.csv`](data/processed/wide_monthly.csv) | 위 데이터를 연월×시리즈 wide 포맷으로 피벗 |
 | [`ma12_monthly.csv`](data/processed/ma12_monthly.csv) | 12개월 이동평균 |
@@ -78,6 +79,7 @@ MOLIT_API_KEY=발급받은키
 ### 3. 실행 순서
 ```bash
 python scripts/collect_data.py   # 1) 원본 데이터 수집 — 76개 지역 x 240개월. 일일 API 트래픽 한도(약 10,000건)로 인해 여러 날에 나눠 실행될 수 있으며, 재실행 시 이미 받은 조합은 자동으로 건너뜁니다.
+python scripts/split_by_region_month.py   # (선택) 원본을 data/regional/ 아래 지역별·월별 CSV로 분할
 python scripts/preprocess.py     # 2) 정제 + IQR 이상치 제거 + 8개 시리즈 월별 집계
 python scripts/analyze.py        # 3) 이동평균/변화율 계산 + 시각화 3종 생성 (images/ 폴더에 저장)
 python scripts/decompose.py      # 4) [보너스] 추세/계절성/잔차 분해 + 시각화 1종 생성
@@ -104,7 +106,8 @@ M1-1/
 │   ├── 03_period_comparison.png
 │   └── 04_seasonal_decomposition.png   # [보너스]
 └── data/
-    ├── raw/                    # 수집 로그 (원본 대용량 CSV는 재현 가능하므로 .gitignore 처리)
+    ├── raw/                    # 수집 로그 (460만 행 단일 CSV는 용량 때문에 .gitignore 처리)
+    ├── regional/               # 원본 데이터를 도시/구·군/월별 CSV로 분할한 것 (INDEX.md 참고)
     └── processed/              # 분석에 사용된 집계 데이터 전체
 ```
 

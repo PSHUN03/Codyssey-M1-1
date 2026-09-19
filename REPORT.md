@@ -18,6 +18,7 @@
 - **수집 범위**: 서울 25개구 + 부산 16 + 대구 9 + 인천 11 + 광주 5 + 대전 5 + 울산 5 = **전체 76개 지역**
 - **기간**: 2006년 1월\~2025년 12월 (20년, 240개월) — 2006년 1월은 부동산 실거래가 신고 의무화 시행일로, API가 제공하는 최초 시점
 - **원본 데이터 규모**: 4,632,458건 (개별 거래 단위)
+- **원본 데이터 열람**: 460만 건 전체는 지역·월별 CSV로 나눠 저장소에 포함했다 ([`data/regional/`](data/regional/INDEX.md), 75개 구·군 17,878개 파일, 이상치 제거 전 값)
 - **주요 컬럼**: 지역/도시(구·시), 계약년월, 단지명(aptNm), 건축년도(buildYear), 거래금액(dealAmount), 전용면적(excluUseAr), 층(floor), 법정동(umdNm), 거래유형(dealingGbn) 등 총 17개 컬럼
 - **결측치**: 분석에 쓰는 거래금액·전용면적 컬럼의 결측·0 이하 값 0건 (단지동·해제일 등 부가 컬럼은 공백이 많으나 분석에 사용하지 않음). 다만 "거래가 없는 달"(인천 옹진군, 대구 군위군 등)은 결측이 아니라 실제 거래 부재로, API 재조회(`totalCount=0`)로 확인했다.
 - **이상치 처리**: (지역, 연도) 그룹별로 면적당 단가(만원/㎡)의 IQR 1.5배를 벗어나는 거래 제거 → 87,225건(전체의 1.9%) 제거
@@ -110,6 +111,7 @@ pip install -r requirements.txt
 
 ```bash
 python scripts/collect_data.py   # 원본 데이터 수집 (일일 트래픽 한도로 여러 날 나눠 실행될 수 있음)
+python scripts/split_by_region_month.py   # (선택) 원본을 지역별·월별 CSV로 분할 -> data/regional/
 python scripts/preprocess.py     # 정제 + 8개 시리즈 월별 집계
 python scripts/analyze.py        # 시계열 분석 + 시각화 3종 생성
 python scripts/decompose.py      # [보너스] 추세/계절성 분해 + 시각화 1종 생성
