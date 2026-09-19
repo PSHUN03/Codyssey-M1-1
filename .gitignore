@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# 100MB+ 대용량 원본/정제 데이터 (GitHub 업로드 한도 초과) - scripts/collect_data.py, preprocess.py로 재생성 가능
+data/raw/apt_trade_raw.csv
+data/processed/apt_trade_clean.csv
