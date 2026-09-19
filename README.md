@@ -28,7 +28,8 @@
 |---|---|---|
 | 서울 vs 지방광역시 가격 추이 | [열기](images/01_price_trend.png) | [설명](REPORT.md#시각화-1--서울-vs-지방광역시-면적당-가격-추이) |
 | 서울/지방 가격배율(격차) 추이 | [열기](images/02_gap_ratio.png) | [설명](REPORT.md#시각화-2--서울지방광역시-가격배율격차-지표-추이) |
-| 국면별 누적 변화율 비교 | [열기](images/03_period_comparison.png) | [설명](REPORT.md#시각화-3--국면별-누적-가격-변화율-비교) |
+| 국면별 누적 변화율 비교 (구성 보정) | [열기](images/03_period_comparison.png) | [설명](REPORT.md#시각화-3--국면별-누적-가격-변화율-비교-구성-보정) |
+| 구성 보정 지수 경로와 격차 상대지수 | [열기](images/05_composition_adjusted_check.png) | [설명](REPORT.md#시각화-4--구성-보정-지수-경로와-격차-상대지수) |
 | [보너스] 추세/계절성 분해 | [열기](images/04_seasonal_decomposition.png) | [설명](REPORT.md#7-보너스-시계열-심화--추세계절성-분해) |
 
 ### 💡 인사이트 바로가기
@@ -41,7 +42,8 @@
 |---|---|
 | [`scripts/collect_data.py`](scripts/collect_data.py) | 국토부 Open API로 76개 지역 × 240개월 원본 데이터 수집 (캐싱/재개 로직 포함) |
 | [`scripts/preprocess.py`](scripts/preprocess.py) | 면적당 단가 계산, IQR 이상치 제거, 8개 시리즈 월별 집계 |
-| [`scripts/analyze.py`](scripts/analyze.py) | 이동평균·국면별 변화율 계산 및 시각화 3종 생성 |
+| [`scripts/analyze.py`](scripts/analyze.py) | 12개월 이동평균·격차 배율 계산 및 시각화 1·2 생성 |
+| [`scripts/composition_index.py`](scripts/composition_index.py) | 거래 구성(지역·면적·연식)을 보정한 가격지수 계산, 국면별 변화율(3가지 방식 비교), 시각화 3·4 생성 |
 | [`scripts/decompose.py`](scripts/decompose.py) | [보너스] 추세/계절성/잔차 분해 및 시각화 생성 |
 | [`scripts/decompose_compare.py`](scripts/decompose_compare.py) | [보너스] 분해 방식(가법/승법, 고전적/STL) 비교 수치 계산 |
 
@@ -54,7 +56,10 @@
 | [`ma12_monthly.csv`](data/processed/ma12_monthly.csv) | 12개월 이동평균 |
 | [`yoy_monthly.csv`](data/processed/yoy_monthly.csv) | 전년동월대비 변화율(YoY %) |
 | [`gap_ratio_monthly.csv`](data/processed/gap_ratio_monthly.csv) | 서울/지방광역시 가격배율(격차 지표) |
-| [`period_comparison.csv`](data/processed/period_comparison.csv) | 국면별 누적 변화율 비교 |
+| [`composition_adjusted_index.csv`](data/processed/composition_adjusted_index.csv) | 구성 보정 가격지수 (연도별, 8개 시리즈, 2006=100) |
+| [`gap_relative_index.csv`](data/processed/gap_relative_index.csv) | 서울/지방 상대 격차 지수 (구성 보정 vs 풀링 중앙값 배율) |
+| [`period_comparison.csv`](data/processed/period_comparison.csv) | 국면별 누적 변화율 (기존/12개월 이동평균/구성 보정 3가지 방식) |
+| [`adjustment_diagnostics.txt`](data/processed/adjustment_diagnostics.txt) | 구성 보정 지수 계산 로그(칸 수, 커버리지 등) |
 | [`key_stats.txt`](data/processed/key_stats.txt) | 리포트에 인용된 핵심 수치 요약 |
 | [`gu_monthly_median.csv`](data/processed/gu_monthly_median.csv) | 76개 구 단위 월별 중앙값 (참고용 상세 데이터) |
 | [`decomposition_method_comparison.txt`](data/processed/decomposition_method_comparison.txt) / [`seasonal_method_comparison.csv`](data/processed/seasonal_method_comparison.csv) | [보너스] 분해 방식 비교 결과 |
@@ -84,7 +89,8 @@ MOLIT_API_KEY=발급받은키
 python scripts/collect_data.py   # 1) 원본 데이터 수집 — 76개 지역 x 240개월. 일일 API 트래픽 한도(약 10,000건)로 인해 여러 날에 나눠 실행될 수 있으며, 재실행 시 이미 받은 조합은 자동으로 건너뜁니다.
 python scripts/split_by_region_month.py   # (선택) 원본을 data/regional/ 아래 지역별·월별 CSV로 분할
 python scripts/preprocess.py     # 2) 정제 + IQR 이상치 제거 + 8개 시리즈 월별 집계
-python scripts/analyze.py        # 3) 이동평균/변화율 계산 + 시각화 3종 생성 (images/ 폴더에 저장)
+python scripts/analyze.py        # 3) 12개월 이동평균·격차 배율 + 시각화 1·2 생성 (images/ 폴더에 저장)
+python scripts/composition_index.py   # 3-1) 구성 보정 지수 + 국면별 변화율 + 시각화 3·4 생성 (analyze.py 다음에 실행)
 python scripts/decompose.py      # 4) [보너스] 추세/계절성/잔차 분해 + 시각화 1종 생성
 ```
 
@@ -101,12 +107,14 @@ M1-1/
 ├── scripts/
 │   ├── collect_data.py         # 국토부 API 데이터 수집
 │   ├── preprocess.py           # 정제 + 이상치 제거 + 월별 집계
-│   ├── analyze.py              # 시계열 분석 + 시각화
+│   ├── analyze.py              # 이동평균·격차 배율 + 시각화 1·2
+│   ├── composition_index.py    # 구성 보정 지수 + 국면별 변화율 + 시각화 3·4
 │   └── decompose.py            # [보너스] 추세/계절성 분해
 ├── images/
 │   ├── 01_price_trend.png
 │   ├── 02_gap_ratio.png
 │   ├── 03_period_comparison.png
+│   ├── 05_composition_adjusted_check.png
 │   └── 04_seasonal_decomposition.png   # [보너스]
 └── data/
     ├── raw/                    # 수집 로그 (460만 행 단일 CSV는 용량 때문에 .gitignore 처리)
