@@ -1,5 +1,5 @@
-pandas
-python-dotenv
-PublicDataReader
-requests
-matplotlib
+requests==2.34.2
+python-dotenv==1.2.3
+pandas==3.0.5
+numpy==2.5.2
+matplotlib==3.11.1
