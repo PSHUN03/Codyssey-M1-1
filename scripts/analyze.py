@@ -126,6 +126,18 @@ def main():
         total_growth = (wide[city].iloc[-1] / wide[city].iloc[0] - 1) * 100
         lines.append(f"{city} 2006~2025 총 누적 변화율: {total_growth:.1f}%")
 
+    # 단월(첫 달/마지막 달) 비교는 해당 월의 변동에 민감하므로 연평균 기준 지표를 함께 산출
+    annual = wide.groupby(wide.index.year).mean()
+    annual.to_csv(os.path.join(PROCESSED_DIR, "annual_mean.csv"), encoding="utf-8-sig")
+    gap_annual = gap_ratio.groupby(gap_ratio.index.year).mean()
+    lines.append("")
+    lines.append("[연평균 기준]")
+    for city in SERIES_ORDER:
+        growth = (annual.loc[2025, city] / annual.loc[2006, city] - 1) * 100
+        lines.append(f"{city} 2006->2025 연평균 {annual.loc[2006, city]:.1f} -> {annual.loc[2025, city]:.1f} 만원/㎡ (+{growth:.1f}%)")
+    for year in [2006, 2009, 2015, 2024, 2025]:
+        lines.append(f"{year}년 서울/지방 배율 연평균: {gap_annual.loc[year]:.2f}배")
+
     with open(os.path.join(PROCESSED_DIR, "key_stats.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     print("\n".join(lines))
