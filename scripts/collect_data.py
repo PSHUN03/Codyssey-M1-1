@@ -5,6 +5,7 @@
 - 일일 트래픽 한도(10,000건)에 걸리면 자동 중단, 다시 실행하면 이어서 진행(캐싱/재개)
 """
 import os
+import re
 import time
 import csv
 import xml.etree.ElementTree as ET
@@ -109,6 +110,7 @@ def parse_items(xml_text):
     return result_code, rows
 
 def log(msg):
+    msg = re.sub(r"serviceKey=[^&\s)']+", "serviceKey=***", str(msg))
     with open(LOG_PATH, "a", encoding="utf-8") as f:
         f.write(f"[{datetime.now().isoformat(timespec='seconds')}] {msg}\n")
 
